@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.prompttrail/
+*.tgz
+.DS_Store
+npm-debug.log*
