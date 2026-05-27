@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .prompttrail/
+!tests/fixtures/**/.prompttrail/
+!tests/fixtures/**/.prompttrail/events.jsonl
 *.tgz
 .DS_Store
 npm-debug.log*

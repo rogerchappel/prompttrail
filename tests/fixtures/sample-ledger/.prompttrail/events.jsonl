@@ -1,0 +1,4 @@
+{"version":1,"id":"evt_prompt_001","timestamp":"2026-05-17T00:00:00.000Z","type":"prompt","summary":"Asked agent to inspect failing TypeScript check","message":"Prompt omitted; receipt keeps only a concise local summary.","cwd":"~/Developer/my-opensource/prompttrail","tags":["factory","handoff"]}
+{"version":1,"id":"evt_tool_001","timestamp":"2026-05-17T00:02:00.000Z","type":"tool","summary":"Ran npm run check","tool":"npm","status":"fail","cwd":"~/Developer/my-opensource/prompttrail","metadata":{"exitCode":2}}
+{"version":1,"id":"evt_decision_001","timestamp":"2026-05-17T00:04:00.000Z","type":"decision","summary":"Keep V1 local-only with no background capture","status":"ok","tags":["privacy","scope"]}
+{"version":1,"id":"evt_verify_001","timestamp":"2026-05-17T00:08:00.000Z","type":"verification","summary":"Fixture smoke passes after redaction update","tool":"node","status":"ok","metadata":{"command":"node dist/run.js list --dir tests/fixtures/sample-ledger"}}
