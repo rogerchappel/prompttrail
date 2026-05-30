@@ -4,7 +4,9 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$repo_root"
 
-tmp_dir="$(mktemp -d "\${TMPDIR:-/tmp}/prompttrail-smoke.XXXXXX")"
+tmp_parent="${TMPDIR:-/tmp}"
+mkdir -p "$tmp_parent"
+tmp_dir="$(mktemp -d "$tmp_parent/prompttrail-smoke.XXXXXX")"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 node dist/run.js help >/dev/null
