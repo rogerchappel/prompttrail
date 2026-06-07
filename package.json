@@ -15,7 +15,8 @@
     "dist",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "SECURITY.md"
   ],
   "scripts": {
     "build": "tsc",
@@ -44,5 +45,13 @@
   "devDependencies": {
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerchappel/prompttrail.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/prompttrail/issues"
+  },
+  "homepage": "https://github.com/rogerchappel/prompttrail#readme"
 }
