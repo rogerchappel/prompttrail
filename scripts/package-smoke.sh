@@ -23,7 +23,7 @@ if [ -z "$documented_help_command" ]; then
 fi
 
 documented_help_output="$(sh -c "$documented_help_command")"
-if [[ "$documented_help_output" != *"Usage: prompttrail"* ]]; then
+if [[ "$documented_help_output" != *"PromptTrail -"* || "$documented_help_output" != *"Usage:"* ]]; then
   echo "README CLI quickstart did not print prompttrail help" >&2
   exit 1
 fi
@@ -34,7 +34,7 @@ npm install --prefix "$tmp_dir/install" --ignore-scripts --silent "$package_path
 
 for bin_name in prompttrail pt; do
   help_output="$("$tmp_dir/install/node_modules/.bin/$bin_name" --help)"
-  if [[ "$help_output" != *"Usage: prompttrail"* ]]; then
+  if [[ "$help_output" != *"PromptTrail -"* || "$help_output" != *"Usage:"* ]]; then
     echo "Installed $bin_name binary did not print prompttrail help" >&2
     exit 1
   fi
