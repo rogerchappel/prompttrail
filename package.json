@@ -25,7 +25,7 @@
     "pretest": "npm run build",
     "test": "node --test tests/*.test.mjs",
     "smoke": "bash scripts/smoke.sh",
-    "package:smoke": "npm pack --dry-run",
+    "package:smoke": "bash scripts/package-smoke.sh",
     "release:check": "npm test && npm run smoke && npm run package:smoke"
   },
   "keywords": [
