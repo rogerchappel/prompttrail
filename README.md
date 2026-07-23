@@ -22,7 +22,7 @@ npm run build
 Start with the built CLI help so the examples match the checked-out version:
 
 ```sh
-node dist/cli.js --help
+node dist/run.js --help
 ```
 Run the maintained smoke fixture to exercise the main workflow end to end:
 
@@ -76,6 +76,7 @@ npm run package:smoke
 npm run release:check
 ```
 
-The package smoke uses `npm pack --dry-run` so the published file list can be reviewed without publishing.
+The package smoke runs the documented help command, creates and locally installs
+the package tarball, and verifies both published CLI names without publishing.
 
 `prompttrail` also publishes the short `pt` alias for the same CLI entry point.
