@@ -19,6 +19,10 @@
     "SECURITY.md",
     "CONTRIBUTING.md"
   ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "build": "tsc",
     "check": "tsc --noEmit",
@@ -26,7 +30,8 @@
     "test": "node --test tests/*.test.mjs",
     "smoke": "bash scripts/smoke.sh",
     "package:smoke": "bash scripts/package-smoke.sh",
-    "release:check": "npm test && npm run smoke && npm run package:smoke"
+    "release:check": "npm test && npm run smoke && npm run package:smoke",
+    "release:validate": "node scripts/validate-release.mjs"
   },
   "keywords": [
     "agent",
