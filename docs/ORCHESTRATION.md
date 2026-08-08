@@ -7,6 +7,9 @@
 4. After pushing, use GitHub checks to confirm the release dry-run and repository hygiene workflows pass.
 
 ## Release handoff
-- Treat npm publishing and tagging as manual maintainer actions.
+- Maintainers create and push the version tag; the tag workflow publishes npm
+  first and creates the GitHub release only after registry publication succeeds.
+- If GitHub release creation fails after npm succeeds, recover by creating the
+  GitHub release for the existing tag. Never retry publication of that version.
 - Include verification evidence in pull requests so release reviewers can reproduce the checks.
 - Prefer follow-up PRs for runtime or fixture changes that are not directly tied to release readiness.
