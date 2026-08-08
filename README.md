@@ -80,3 +80,15 @@ The package smoke runs the documented help command, creates and locally installs
 the package tarball, and verifies both published CLI names without publishing.
 
 `prompttrail` also publishes the short `pt` alias for the same CLI entry point.
+
+## Publishing a release
+
+Push a validated `vX.Y.Z` tag whose version exactly matches `package.json`. The
+release workflow runs all release checks, validates the package contents, and
+publishes the public npm package with provenance before creating the matching
+GitHub release. A validation or npm publication failure therefore leaves no
+GitHub release to suggest that publication completed.
+
+If npm publication succeeds but GitHub release creation fails, do not republish
+the immutable npm version. Re-run or repair only the GitHub release step for the
+existing tag after confirming the version and provenance on npm.
