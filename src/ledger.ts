@@ -1,5 +1,6 @@
 import { constants as fsConstants } from 'node:fs';
 import { access, appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { PromptTrailError } from './errors.js';
 import { createEvent, parseEvent, type EventInput } from './event.js';
 import { resolveTrailPaths, type TrailPaths } from './paths.js';
 import type { DoctorResult, PromptTrailEvent, PromptTrailEventType } from './types.js';
@@ -37,8 +38,16 @@ export async function readEvents(options: ListOptions = {}): Promise<PromptTrail
   const content = await readFile(paths.ledgerPath, 'utf8');
   const events = content
     .split('\n')
-    .filter(Boolean)
-    .map((line) => parseEvent(line))
+    .map((line, index) => ({ line, lineNumber: index + 1 }))
+    .filter(({ line }) => Boolean(line.trim()))
+    .map(({ line, lineNumber }) => {
+      try {
+        return parseEvent(line);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'unknown parse error';
+        throw new PromptTrailError('invalid event at line ' + lineNumber + ': ' + message);
+      }
+    })
     .filter((event) => !options.type || event.type === options.type)
     .filter((event) => !options.since || event.timestamp >= options.since)
     .filter((event) => !options.until || event.timestamp <= options.until);

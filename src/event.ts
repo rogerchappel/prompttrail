@@ -47,13 +47,40 @@ export function createEvent(input: EventInput): PromptTrailEvent {
 }
 
 export function parseEvent(json: string): PromptTrailEvent {
-  const value = JSON.parse(json) as Partial<PromptTrailEvent>;
+  const value = JSON.parse(json) as unknown;
+  if (!isRecord(value)) throw new PromptTrailError('event must be a JSON object');
   if (value.version !== 1) throw new PromptTrailError('unsupported event version');
-  if (!value.id || !value.timestamp || !value.type || !value.summary) {
-    throw new PromptTrailError('event is missing required fields');
-  }
+  assertNonEmptyString(value.id, 'id');
+  assertNonEmptyString(value.timestamp, 'timestamp');
+  assertNonEmptyString(value.type, 'type');
+  assertNonEmptyString(value.summary, 'summary');
+  if (!Number.isFinite(Date.parse(value.timestamp))) throw new PromptTrailError('event timestamp must be a valid date');
   if (!isEventType(value.type)) throw new PromptTrailError('unknown event type: ' + value.type);
+  if (value.status !== undefined && (typeof value.status !== 'string' || !isStatus(value.status))) {
+    throw new PromptTrailError('unknown event status: ' + String(value.status));
+  }
+  for (const field of ['message', 'tool', 'cwd'] as const) {
+    if (value[field] !== undefined && typeof value[field] !== 'string') {
+      throw new PromptTrailError('event ' + field + ' must be a string');
+    }
+  }
+  if (value.tags !== undefined && (!Array.isArray(value.tags) || value.tags.some((tag) => typeof tag !== 'string'))) {
+    throw new PromptTrailError('event tags must be an array of strings');
+  }
+  if (value.metadata !== undefined && !isRecord(value.metadata)) {
+    throw new PromptTrailError('event metadata must be a JSON object');
+  }
   return value as PromptTrailEvent;
+}
+
+function assertNonEmptyString(value: unknown, field: string): asserts value is string {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new PromptTrailError('event ' + field + ' must be a non-empty string');
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function parseEventType(value: string): PromptTrailEventType {
