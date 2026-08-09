@@ -120,7 +120,11 @@ function parseOptionalType(value: string | undefined): PromptTrailEventType | un
 }
 
 function output(parsed: ReturnType<typeof parseArgs>, value: unknown, markdown: () => string): string {
-  return flag(parsed, 'format') === 'json' ? toJson(value) : markdown();
+  const format = flag(parsed, 'format') ?? 'markdown';
+  if (format !== 'markdown' && format !== 'json') {
+    throw new PromptTrailError('--format must be markdown or json.');
+  }
+  return format === 'json' ? toJson(value) : markdown();
 }
 
 function countBy(values: string[]): Record<string, number> {

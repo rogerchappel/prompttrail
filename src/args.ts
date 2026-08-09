@@ -43,9 +43,10 @@ export function flagAll(parsed: ParsedArgs, name: string): string[] {
 export function intFlag(parsed: ParsedArgs, name: string): number | undefined {
   const value = flag(parsed, name);
   if (value === undefined) return undefined;
-  const parsedValue = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsedValue) || parsedValue < 1) {
+  if (!/^[1-9]\d*$/.test(value)) {
     throw new PromptTrailError('--' + name + ' must be a positive integer.');
   }
+  const parsedValue = Number(value);
+  if (!Number.isSafeInteger(parsedValue)) throw new PromptTrailError('--' + name + ' must be a positive integer.');
   return parsedValue;
 }

@@ -45,3 +45,41 @@ test('CLI redacts fixture input', async () => {
   assert.equal(stdout.includes('ghp_'), false);
   assert.equal(stdout.includes('Bearer abc'), false);
 });
+
+test('CLI accepts a complete positive integer limit token', async () => {
+  const { stdout } = await execFileAsync(process.execPath, [
+    cli,
+    'list',
+    '--dir',
+    'tests/fixtures/sample-ledger',
+    '--limit',
+    '2',
+    '--format',
+    'json'
+  ]);
+
+  assert.equal(JSON.parse(stdout).length, 2);
+});
+
+test('CLI rejects a partially numeric limit token', async () => {
+  await assert.rejects(
+    execFileAsync(process.execPath, [cli, 'list', '--limit', '2oops']),
+    (error) => error.code === 1 && /--limit must be a positive integer/.test(error.stderr)
+  );
+});
+
+for (const command of ['list', 'summary', 'doctor']) {
+  test(`CLI rejects an unsupported ${command} output format`, async () => {
+    await assert.rejects(
+      execFileAsync(process.execPath, [
+        cli,
+        command,
+        '--dir',
+        'tests/fixtures/sample-ledger',
+        '--format',
+        'yaml'
+      ]),
+      (error) => error.code === 1 && /--format must be markdown or json/.test(error.stderr)
+    );
+  });
+}
