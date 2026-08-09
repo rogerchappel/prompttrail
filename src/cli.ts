@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { readFile, writeFile } from 'node:fs/promises';
-import { flag, flagAll, intFlag, parseArgs } from './args.js';
+import { flag, flagAll, intFlag, parseArgs, validateArgs } from './args.js';
 import { PromptTrailError } from './errors.js';
 import { formatDoctorMarkdown, formatEventsMarkdown, formatSummaryMarkdown, toJson } from './format.js';
 import { appendEvent, doctor, initLedger, readEvents } from './ledger.js';
@@ -25,6 +25,8 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     const parsed = parseArgs(argv);
     const command = parsed.command ?? 'help';
 
+    validateArgs(parsed);
+
     if (command === 'help' || command === '--help' || command === '-h') {
       process.stdout.write(HELP);
       return 0;
@@ -37,6 +39,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     }
 
     if (command === 'append') {
+      if (!flag(parsed, 'summary')) throw new PromptTrailError('append requires --summary <text>.');
       const event = await appendEvent({
         type: flag(parsed, 'type') ?? 'note',
         summary: flag(parsed, 'summary'),
