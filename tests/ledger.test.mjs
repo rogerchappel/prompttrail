@@ -39,6 +39,25 @@ test('filters fixture ledger by type and limit', async () => {
   assert.equal(events[0].summary, 'Ran npm run check');
 });
 
+test('filters timestamps as normalized instants with inclusive bounds', async () => {
+  const events = await readEvents({
+    root: 'tests/fixtures/sample-ledger',
+    since: '2026-05-17T02:04:00+02:00',
+    until: '2026-05-16T20:08:00-04:00'
+  });
+
+  assert.deepEqual(events.map((event) => event.id), ['evt_decision_001', 'evt_verify_001']);
+});
+
+test('rejects invalid and reversed timestamp bounds before reading a ledger', async () => {
+  await assert.rejects(readEvents({ root: 'does-not-exist', since: '2026-02-30T00:00:00Z' }), /--since must be a valid ISO-8601 instant/);
+  await assert.rejects(readEvents({ root: 'does-not-exist', until: 'not-a-date' }), /--until must be a valid ISO-8601 instant/);
+  await assert.rejects(
+    readEvents({ since: '2026-05-18T00:00:00Z', until: '2026-05-17T00:00:00Z' }),
+    /--since must be earlier than or equal to --until/
+  );
+});
+
 test('doctor validates the fixture ledger', async () => {
   const result = await doctor('tests/fixtures/sample-ledger');
 

@@ -61,6 +61,28 @@ test('CLI accepts a complete positive integer limit token', async () => {
   assert.equal(JSON.parse(stdout).length, 2);
 });
 
+test('CLI filters with inclusive timezone-normalized timestamp bounds', async () => {
+  const { stdout } = await execFileAsync(process.execPath, [
+    cli, 'list', '--dir', 'tests/fixtures/sample-ledger', '--format', 'json',
+    '--since', '2026-05-16T20:04:00-04:00', '--until', '2026-05-17T02:08:00+02:00'
+  ]);
+
+  assert.deepEqual(JSON.parse(stdout).map((event) => event.id), ['evt_decision_001', 'evt_verify_001']);
+});
+
+for (const [args, message] of [
+  [['--since', 'not-a-date'], /--since must be a valid ISO-8601 instant/],
+  [['--until', '2026-99-99T00:00:00Z'], /--until must be a valid ISO-8601 instant/],
+  [['--since', '2026-12-31T00:00:00Z', '--until', '2026-01-01T00:00:00Z'], /--since must be earlier than or equal to --until/]
+]) {
+  test(`CLI rejects invalid time bounds: ${args.join(' ')}`, async () => {
+    await assert.rejects(
+      execFileAsync(process.execPath, [cli, 'list', '--dir', 'tests/fixtures/sample-ledger', ...args]),
+      (error) => error.code === 1 && message.test(error.stderr)
+    );
+  });
+}
+
 test('CLI rejects a partially numeric limit token', async () => {
   await assert.rejects(
     execFileAsync(process.execPath, [cli, 'list', '--limit', '2oops']),
