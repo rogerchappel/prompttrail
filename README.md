@@ -35,6 +35,11 @@ The smoke command currently expands to:
 ```sh
 bash scripts/smoke.sh
 ```
+
+Each command rejects unsupported flags and extra positional arguments. Flags
+require values, `append --summary <text>` is required, and `--tag <tag>` may be
+repeated. `redact` is the only command that accepts a positional argument: one
+optional input file (otherwise it reads standard input).
 ## Verification
 
 ```sh

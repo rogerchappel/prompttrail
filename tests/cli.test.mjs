@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdtemp } from 'node:fs/promises';
+import { access, mkdtemp, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -83,3 +83,62 @@ for (const command of ['list', 'summary', 'doctor']) {
     );
   });
 }
+
+const invalidArguments = [
+  ['help', '--format', 'json', /Unknown flag "--format" for help/],
+  ['init', 'unexpected', /init does not accept positional arguments/],
+  ['append', '--summary', /--summary requires a value/],
+  ['list', '--limti', '1', /Unknown flag "--limti" for list/],
+  ['summary', 'unexpected', /summary does not accept positional arguments/],
+  ['redact', 'one.txt', 'two.txt', /redact accepts at most one input file/],
+  ['doctor', '--dir', 'one', '--dir', 'two', /--dir may only be specified once for doctor/]
+];
+
+for (const [command, ...args] of invalidArguments) {
+  const expected = args.pop();
+  test(`CLI rejects invalid ${command} arguments`, async () => {
+    await assert.rejects(
+      execFileAsync(process.execPath, [cli, command, ...args]),
+      (error) => error.code === 1 && expected.test(error.stderr)
+    );
+  });
+}
+
+test('CLI validates init arguments before creating a ledger', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'prompttrail-invalid-init-'));
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [cli, 'init', '--dir', root, '--unknown', 'value']),
+    (error) => error.code === 1 && /Unknown flag "--unknown" for init/.test(error.stderr)
+  );
+  await assert.rejects(access(path.join(root, '.prompttrail', 'events.jsonl')));
+});
+
+test('CLI requires append summary before writing to the ledger', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'prompttrail-invalid-append-'));
+  await execFileAsync(process.execPath, [cli, 'init', '--dir', root]);
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [cli, 'append', '--dir', root, '--status', 'ok']),
+    (error) => error.code === 1 && /append requires --summary <text>/.test(error.stderr)
+  );
+  assert.equal(await readFile(path.join(root, '.prompttrail', 'events.jsonl'), 'utf8'), '');
+});
+
+test('CLI accepts repeatable append tags', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'prompttrail-tags-'));
+  await execFileAsync(process.execPath, [cli, 'init', '--dir', root]);
+  const { stdout } = await execFileAsync(process.execPath, [
+    cli, 'append', '--dir', root, '--summary', 'Tagged event', '--tag', 'first', '--tag=second'
+  ]);
+
+  assert.deepEqual(JSON.parse(stdout).tags, ['first', 'second']);
+});
+
+test('CLI redact accepts one optional input and output flag', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'prompttrail-redact-'));
+  const output = path.join(root, 'redacted.txt');
+  await execFileAsync(process.execPath, [cli, 'redact', 'tests/fixtures/raw-secret.txt', '--output', output]);
+
+  assert.equal((await readFile(output, 'utf8')).includes('ghp_'), false);
+});

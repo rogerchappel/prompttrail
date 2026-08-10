@@ -6,6 +6,25 @@ export type ParsedArgs = {
   flags: Map<string, string[]>;
 };
 
+type CommandSchema = {
+  flags: readonly string[];
+  repeatableFlags?: readonly string[];
+  maxPositionals?: number;
+};
+
+const COMMAND_SCHEMAS: Record<string, CommandSchema> = {
+  help: { flags: [] },
+  init: { flags: ['dir'] },
+  append: {
+    flags: ['type', 'summary', 'message', 'tool', 'status', 'cwd', 'tag', 'metadata', 'dir'],
+    repeatableFlags: ['tag']
+  },
+  list: { flags: ['format', 'type', 'limit', 'since', 'until', 'dir'] },
+  summary: { flags: ['format', 'dir'] },
+  redact: { flags: ['output'], maxPositionals: 1 },
+  doctor: { flags: ['format', 'dir'] }
+};
+
 export function parseArgs(argv: string[]): ParsedArgs {
   const [command, ...rest] = argv;
   const flags = new Map<string, string[]>();
@@ -21,7 +40,10 @@ export function parseArgs(argv: string[]): ParsedArgs {
     const [rawName, inlineValue] = token.slice(2).split('=', 2);
     if (!rawName) throw new PromptTrailError('Empty flag name.');
     const next = rest[index + 1];
-    const value = inlineValue ?? (next && !next.startsWith('--') ? next : 'true');
+    const value = inlineValue ?? (next && !next.startsWith('--') ? next : undefined);
+    if (value === undefined || value === '') {
+      throw new PromptTrailError('--' + rawName + ' requires a value.');
+    }
     if (inlineValue === undefined && next && !next.startsWith('--')) index += 1;
 
     const current = flags.get(rawName) ?? [];
@@ -30,6 +52,30 @@ export function parseArgs(argv: string[]): ParsedArgs {
   }
 
   return { command, positionals, flags };
+}
+
+export function validateArgs(parsed: ParsedArgs): void {
+  const command = parsed.command ?? 'help';
+  const schema = COMMAND_SCHEMAS[command];
+  if (!schema) return;
+
+  for (const [name, values] of parsed.flags) {
+    if (!schema.flags.includes(name)) {
+      throw new PromptTrailError('Unknown flag "--' + name + '" for ' + command + '. Run prompttrail help.');
+    }
+    if (values.length > 1 && !schema.repeatableFlags?.includes(name)) {
+      throw new PromptTrailError('--' + name + ' may only be specified once for ' + command + '.');
+    }
+  }
+
+  const maxPositionals = schema.maxPositionals ?? 0;
+  if (parsed.positionals.length > maxPositionals) {
+    throw new PromptTrailError(
+      command === 'redact'
+        ? 'redact accepts at most one input file.'
+        : command + ' does not accept positional arguments.'
+    );
+  }
 }
 
 export function flag(parsed: ParsedArgs, name: string): string | undefined {
