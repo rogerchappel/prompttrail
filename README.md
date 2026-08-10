@@ -40,6 +40,11 @@ Each command rejects unsupported flags and extra positional arguments. Flags
 require values, `append --summary <text>` is required, and `--tag <tag>` may be
 repeated. `redact` is the only command that accepts a positional argument: one
 optional input file (otherwise it reads standard input).
+
+`list --since` and `list --until` are inclusive. Each bound must be a complete
+ISO-8601 instant with a timezone, such as `2026-05-17T00:00:00Z` or
+`2026-05-17T10:00:00+10:00`; equivalent timezone offsets are compared as the
+same instant, and `--since` cannot be later than `--until`.
 ## Verification
 
 ```sh
