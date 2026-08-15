@@ -31,7 +31,8 @@
     "smoke": "bash scripts/smoke.sh",
     "package:smoke": "bash scripts/package-smoke.sh",
     "release:check": "npm test && npm run smoke && npm run package:smoke",
-    "release:validate": "node scripts/validate-release.mjs"
+    "release:validate": "node scripts/validate-release.mjs",
+    "release:workflow": "node scripts/validate-release-workflow.mjs"
   },
   "keywords": [
     "agent",
