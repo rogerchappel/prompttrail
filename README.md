@@ -53,6 +53,7 @@ npm test
 npm run smoke
 npm run package:smoke
 npm run release:check
+npm run release:workflow
 ```
 
 ## Limitations
@@ -88,6 +89,10 @@ npm run release:check
 
 The package smoke runs the documented help command, creates and locally installs
 the package tarball, and verifies both published CLI names without publishing.
+The workflow validator guards the registry setup, least required permissions,
+and ordering of the package checks, `npm publish --dry-run --provenance --access
+public`, and release-notes preview. Pull requests that affect release inputs run
+the same publication dry run without uploading a package.
 
 `prompttrail` also publishes the short `pt` alias for the same CLI entry point.
 
