@@ -68,7 +68,7 @@ test('doctor validates the fixture ledger', async () => {
 
 test('doctor reports malformed event fields with their JSONL line numbers', async () => {
   const invalidEvents = [
-    { ...validEvent, id: 'bad-timestamp', timestamp: 'not-a-date' },
+    { ...validEvent, id: 'bad-timestamp', timestamp: '2026-02-30T12:00:00Z' },
     { ...validEvent, id: 'bad-status', status: 'definitely-not-valid' },
     { ...validEvent, id: 'bad-tags', tags: 'not-an-array' },
     { ...validEvent, id: 'bad-metadata', metadata: [] }
@@ -96,4 +96,16 @@ test('readEvents rejects a malformed ledger entry with its JSONL line number', a
   ]);
 
   await assert.rejects(readEvents({ root }), /line 2.*summary/i);
+});
+
+test('readEvents accepts valid offset timestamps and rejects impossible calendar dates', async () => {
+  const validRoot = await writeLedger([
+    JSON.stringify({ ...validEvent, timestamp: '2026-02-28T22:00:00+10:00' })
+  ]);
+  assert.equal((await readEvents({ root: validRoot }))[0].timestamp, '2026-02-28T22:00:00+10:00');
+
+  const invalidRoot = await writeLedger([
+    JSON.stringify({ ...validEvent, timestamp: '2026-02-30T12:00:00Z' })
+  ]);
+  await assert.rejects(readEvents({ root: invalidRoot }), /line 1.*event timestamp must be a valid ISO-8601 instant/i);
 });
