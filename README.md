@@ -45,6 +45,9 @@ optional input file (otherwise it reads standard input).
 ISO-8601 instant with a timezone, such as `2026-05-17T00:00:00Z` or
 `2026-05-17T10:00:00+10:00`; equivalent timezone offsets are compared as the
 same instant, and `--since` cannot be later than `--until`.
+Stored event timestamps use the same strict form; impossible calendar dates are
+rejected instead of being normalized to a different date.
+
 ## Verification
 
 ```sh
