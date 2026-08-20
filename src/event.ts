@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { PromptTrailError } from './errors.js';
+import { parseIsoInstant } from './instant.js';
 import { redactText } from './redact.js';
 import { isEventType, isStatus, type PromptTrailEvent, type PromptTrailEventType, type PromptTrailStatus } from './types.js';
 
@@ -54,7 +55,7 @@ export function parseEvent(json: string): PromptTrailEvent {
   assertNonEmptyString(value.timestamp, 'timestamp');
   assertNonEmptyString(value.type, 'type');
   assertNonEmptyString(value.summary, 'summary');
-  if (!Number.isFinite(Date.parse(value.timestamp))) throw new PromptTrailError('event timestamp must be a valid date');
+  parseIsoInstant(value.timestamp, 'event timestamp');
   if (!isEventType(value.type)) throw new PromptTrailError('unknown event type: ' + value.type);
   if (value.status !== undefined && (typeof value.status !== 'string' || !isStatus(value.status))) {
     throw new PromptTrailError('unknown event status: ' + String(value.status));
