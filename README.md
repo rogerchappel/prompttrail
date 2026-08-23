@@ -108,5 +108,11 @@ GitHub release. A validation or npm publication failure therefore leaves no
 GitHub release to suggest that publication completed.
 
 If npm publication succeeds but GitHub release creation fails, do not republish
-the immutable npm version. Re-run or repair only the GitHub release step for the
-existing tag after confirming the version and provenance on npm.
+the immutable npm version. Run the **Release** workflow manually, enter the
+existing `vX.Y.Z` tag, and leave the tag itself unchanged. The recovery path
+checks out that tag, requires it to match both `package.json` and the checked-out
+commit, reruns the release/package checks, and queries npm and GitHub before
+acting. It skips an already-published exact npm version, publishes with trusted
+provenance only when npm reports that version missing, and creates the GitHub
+release only when it is absent. Lookup errors other than a confirmed missing
+version or release stop the workflow for investigation.
