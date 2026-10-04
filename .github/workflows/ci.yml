@@ -54,19 +54,8 @@ jobs:
             exit 1
           fi
 
-      - name: Run optional Node checks
-        run: |
-          set -euo pipefail
+      - name: Install Node dependencies
+        run: npm ci
 
-          if [ ! -f package.json ]; then
-            echo "No package.json found; skipping Node checks."
-            exit 0
-          fi
-
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
-
-          npm run release:check
+      - name: Run type check, tests, and smoke checks
+        run: npm run release:check
