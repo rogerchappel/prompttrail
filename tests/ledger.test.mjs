@@ -89,6 +89,16 @@ test('doctor reports malformed event fields with their JSONL line numbers', asyn
   assert.match(result.invalidLines[3].error, /metadata/i);
 });
 
+test('readEvents rejects malformed entries even when type or timestamp filters exclude them', async () => {
+  const root = await writeLedger([
+    JSON.stringify({ ...validEvent, type: 'note' }),
+    '{malformed json'
+  ]);
+
+  await assert.rejects(readEvents({ root, type: 'prompt' }), /invalid event at line 2/i);
+  await assert.rejects(readEvents({ root, since: '2026-08-10T00:00:00Z' }), /invalid event at line 2/i);
+});
+
 test('readEvents rejects a malformed ledger entry with its JSONL line number', async () => {
   const root = await writeLedger([
     JSON.stringify(validEvent),
