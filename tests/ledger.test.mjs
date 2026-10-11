@@ -98,6 +98,22 @@ test('readEvents rejects a malformed ledger entry with its JSONL line number', a
   await assert.rejects(readEvents({ root }), /line 2.*summary/i);
 });
 
+test('doctor and readEvents report physical line numbers across blank ledger lines', async () => {
+  const root = await writeLedger([
+    '',
+    JSON.stringify(validEvent),
+    '   ',
+    JSON.stringify({ ...validEvent, id: 'bad-summary', summary: { text: 'wrong shape' } })
+  ]);
+
+  const result = await doctor(root);
+
+  assert.equal(result.ok, false);
+  assert.equal(result.events, 1);
+  assert.deepEqual(result.invalidLines.map(({ line }) => line), [4]);
+  await assert.rejects(readEvents({ root }), /line 4.*summary/i);
+});
+
 test('readEvents accepts valid offset timestamps and rejects impossible calendar dates', async () => {
   const validRoot = await writeLedger([
     JSON.stringify({ ...validEvent, timestamp: '2026-02-28T22:00:00+10:00' })
