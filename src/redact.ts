@@ -11,6 +11,10 @@ type RedactionRule = {
 };
 
 const TOKEN_RULES: RedactionRule[] = [
+  {
+    label: 'private-key-pem',
+    pattern: /-----BEGIN (?:[A-Z0-9 ]+ )?PRIVATE KEY-----[\s\S]*?-----END (?:[A-Z0-9 ]+ )?PRIVATE KEY-----/g
+  },
   { label: 'github-token', pattern: /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{20,}\b/g },
   { label: 'github-pat', pattern: /\bgithub_pat_[A-Za-z0-9_]{22,}\b/g },
   { label: 'openai-key', pattern: /\bsk-[A-Za-z0-9_-]{20,}\b/g },
