@@ -15,6 +15,13 @@ test('redacts common tokens and home paths', () => {
   assert.equal(result.replacements, 3);
 });
 
+test('redacts private-key PEM blocks while preserving benign text', () => {
+  const result = redactText('before\n-----BEGIN PRIVATE KEY-----\nordinary-fixture-key-material\n-----END PRIVATE KEY-----\nafter', '/no-home-match');
+
+  assert.equal(result.text, 'before\n[REDACTED]\nafter');
+  assert.equal(result.replacements, 1);
+});
+
 test('redacts assigned secret values while keeping key names', () => {
   const result = redactText('OPENAI_API_KEY=sk-1234567890abcdefghijklmnop');
 
