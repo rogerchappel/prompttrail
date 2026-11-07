@@ -27,3 +27,14 @@ test('redacts assigned secret values while keeping key names', () => {
 
   assert.equal(result.text, 'OPENAI_API_KEY=[REDACTED]');
 });
+
+test('redacts every assigned secret including case variations and reports each replacement', () => {
+  const input = 'API_TOKEN=alpha-secret-value password=beta-secret-value Mixed_Secret=gamma-secret-value';
+  const result = redactText(input, '/no-home-match');
+
+  assert.equal(
+    result.text,
+    'API_TOKEN=[REDACTED] password=[REDACTED] Mixed_Secret=[REDACTED]'
+  );
+  assert.equal(result.replacements, 3);
+});
