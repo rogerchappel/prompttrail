@@ -30,7 +30,10 @@ const TOKEN_RULES: RedactionRule[] = [
 
 export function redactText(input: string, homeDir = os.homedir()): RedactionReport {
   let replacements = 0;
-  let text = input;
+  let text = input.replace(/\b([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^\s/?#@]*@/g, (_match, scheme: string) => {
+    replacements += 1;
+    return `${scheme}[REDACTED]@`;
+  });
 
   for (const rule of TOKEN_RULES) {
     text = text.replace(rule.pattern, (...args: string[]) => {
