@@ -38,3 +38,22 @@ test('redacts every assigned secret including case variations and reports each r
   );
   assert.equal(result.replacements, 3);
 });
+
+
+test('redacts URL userinfo credentials while preserving safe URL components', () => {
+  const input = [
+    'https://alice:plain-password@example.test:8443/path?mode=read#section',
+    'postgres://db-user:database-password@db.example.test/app',
+    'https://token-only@example.test/resource',
+    'https://user:ghp_1234567890abcdefghijklmnopqrstuv@example.test/token'
+  ].join(' ');
+  const result = redactText(input, '/no-home-match');
+
+  for (const secret of ['alice', 'plain-password', 'db-user', 'database-password', 'token-only', 'ghp_1234567890abcdefghijklmnopqrstuv']) {
+    assert.equal(result.text.includes(secret), false, `leaked ${secret}`);
+  }
+  assert.match(result.text, /https:\/\/\[REDACTED\]@example\.test:8443\/path\?mode=read#section/);
+  assert.match(result.text, /postgres:\/\/\[REDACTED\]@db\.example\.test\/app/);
+  assert.match(result.text, /https:\/\/\[REDACTED\]@example\.test\/resource/);
+  assert.equal(result.replacements, 4);
+});
