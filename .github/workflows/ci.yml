@@ -69,10 +69,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
+          if [ ! -f package-lock.json ]; then
+            echo "::error::package-lock.json is required for deterministic CI installs."
+            exit 1
           fi
 
+          npm ci
           npm run release:check
