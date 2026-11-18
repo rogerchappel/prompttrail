@@ -110,6 +110,7 @@ const invalidArguments = [
   ['help', '--format', 'json', /Unknown flag "--format" for help/],
   ['init', 'unexpected', /init does not accept positional arguments/],
   ['append', '--summary', /--summary requires a value/],
+  ['append', '--summary=', /--summary requires a value/],
   ['list', '--limti', '1', /Unknown flag "--limti" for list/],
   ['summary', 'unexpected', /summary does not accept positional arguments/],
   ['redact', 'one.txt', 'two.txt', /redact accepts at most one input file/],
@@ -145,6 +146,24 @@ test('CLI requires append summary before writing to the ledger', async () => {
     (error) => error.code === 1 && /append requires --summary <text>/.test(error.stderr)
   );
   assert.equal(await readFile(path.join(root, '.prompttrail', 'events.jsonl'), 'utf8'), '');
+});
+
+test('CLI accepts single-dash summary values and rejects empty inline values before writing', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'prompttrail-parser-values-'));
+  await execFileAsync(process.execPath, [cli, 'init', '--dir', root]);
+
+  const { stdout } = await execFileAsync(process.execPath, [
+    cli, 'append', '--dir', root, '--summary', '-value', '--status', 'ok'
+  ]);
+  assert.equal(JSON.parse(stdout).summary, '-value');
+
+  const ledger = path.join(root, '.prompttrail', 'events.jsonl');
+  const before = await readFile(ledger, 'utf8');
+  await assert.rejects(
+    execFileAsync(process.execPath, [cli, 'append', '--dir', root, '--summary=']),
+    (error) => error.code === 1 && /--summary requires a value/.test(error.stderr)
+  );
+  assert.equal(await readFile(ledger, 'utf8'), before);
 });
 
 test('CLI accepts repeatable append tags', async () => {
