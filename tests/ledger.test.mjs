@@ -125,3 +125,15 @@ test('readEvents accepts valid offset timestamps and rejects impossible calendar
   ]);
   await assert.rejects(readEvents({ root: invalidRoot }), /line 1.*event timestamp must be a valid ISO-8601 instant/i);
 });
+
+test('combined type and inclusive timestamp filters apply limit to the newest matches in source order', async () => {
+  const events = await readEvents({
+    root: 'tests/fixtures/sample-ledger',
+    type: 'tool',
+    since: '2026-05-17T00:01:00Z',
+    until: '2026-05-17T00:03:00Z',
+    limit: 1
+  });
+
+  assert.deepEqual(events.map((event) => event.id), ['evt_tool_001']);
+});
