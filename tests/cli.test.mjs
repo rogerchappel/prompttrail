@@ -39,6 +39,28 @@ test('CLI appends and summarizes a local receipt ledger', async () => {
   assert.equal(summary.byType.decision, 1);
 });
 
+test('CLI init reports the isolated ledger path and creates an empty ledger', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'prompttrail-init-'));
+  const { stdout } = await execFileAsync(process.execPath, [cli, 'init', '--dir', root]);
+  const result = JSON.parse(stdout);
+  const ledger = path.join(root, '.prompttrail', 'events.jsonl');
+
+  assert.deepEqual(result, { ok: true, ledger });
+  assert.equal(await readFile(ledger, 'utf8'), '');
+});
+
+test('CLI append reports a missing summary without writing', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'prompttrail-append-error-'));
+  await execFileAsync(process.execPath, [cli, 'init', '--dir', root]);
+  const ledger = path.join(root, '.prompttrail', 'events.jsonl');
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [cli, 'append', '--dir', root]),
+    (error) => error.code === 1 && /append requires --summary <text>/.test(error.stderr)
+  );
+  assert.equal(await readFile(ledger, 'utf8'), '');
+});
+
 test('CLI redacts fixture input', async () => {
   const { stdout } = await execFileAsync(process.execPath, [cli, 'redact', 'tests/fixtures/raw-secret.txt']);
 
@@ -179,7 +201,15 @@ test('CLI accepts repeatable append tags', async () => {
 test('CLI redact accepts one optional input and output flag', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'prompttrail-redact-'));
   const output = path.join(root, 'redacted.txt');
-  await execFileAsync(process.execPath, [cli, 'redact', 'tests/fixtures/raw-secret.txt', '--output', output]);
+  const { stdout } = await execFileAsync(process.execPath, [cli, 'redact', 'tests/fixtures/raw-secret.txt', '--output', output]);
 
-  assert.equal((await readFile(output, 'utf8')).includes('ghp_'), false);
+  const result = JSON.parse(stdout);
+  const redacted = await readFile(output, 'utf8');
+  assert.deepEqual(result, { ok: true, output, replacements: result.replacements });
+  assert.ok(result.replacements > 0);
+  assert.equal(redacted.includes('ghp_'), false);
+  assert.equal(redacted.includes('Bearer abc'), false);
+  assert.ok(redacted.includes('Token [REDACTED] should disappear.'));
+  assert.ok(redacted.includes('Path ~/Developer/my-opensource/prompttrail should become home-relative.'));
+  assert.ok(redacted.includes('Authorization: Bearer [REDACTED]'));
 });
